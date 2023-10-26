@@ -100,7 +100,10 @@ module apb4_i2c (
   always_comb begin
     s_i2c_cmd_d[7:3] = s_i2c_cmd_q[7:3];
     s_i2c_cmd_d[2:0] = 3'b0;
-    if (s_i2c_done | s_i2c_al) begin
+
+    if (s_apb4_wr_hdshk && s_apb_addr == `I2C_CMD && s_i2c_en) begin
+      s_i2c_cmd_d = apb4.pwdata[7:0];
+    end else if (s_i2c_done | s_i2c_al) begin
       s_i2c_cmd_d[7:4] = 4'b0;
     end
   end
@@ -176,10 +179,10 @@ module apb4_i2c (
       .read    (s_i2c_cmd_q[5]),
       .write   (s_i2c_cmd_q[4]),
       .ack_in  (s_i2c_cmd_q[3]),
-      .din     (r_tx),
+      .din     (s_i2c_txr_q),
       .cmd_ack (s_i2c_done),
       .ack_out (s_i2c_irxack),
-      .dout    (s_rx),
+      .dout    (s_i2c_rxr),
       .i2c_busy(s_i2c_busy),
       .i2c_al  (s_i2c_al),
       .scl_i   (scl_i),
