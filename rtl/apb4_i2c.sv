@@ -170,27 +170,27 @@ module apb4_i2c (
   end
 
   i2c_master_byte_ctrl u_i2c_master_byte_ctrl (
-      .clk     (apb4.hclk),
-      .nReset  (apb4.hresetn),
-      .ena     (s_i2c_en),
-      .clk_cnt (s_i2c_pscr_q),
-      .start   (s_i2c_cmd_q[7]),
-      .stop    (s_i2c_cmd_q[6]),
-      .read    (s_i2c_cmd_q[5]),
-      .write   (s_i2c_cmd_q[4]),
-      .ack_in  (s_i2c_cmd_q[3]),
-      .din     (s_i2c_txr_q),
-      .cmd_ack (s_i2c_done),
-      .ack_out (s_i2c_irxack),
-      .dout    (s_i2c_rxr),
-      .i2c_busy(s_i2c_busy),
-      .i2c_al  (s_i2c_al),
-      .scl_i   (scl_i),
-      .scl_o   (scl_o),
-      .scl_oen (scl_dir_o),
-      .sda_i   (sda_i),
-      .sda_o   (sda_o),
-      .sda_oen (sda_dir_o)
+      .clk_i     (apb4.hclk),
+      .rst_n_i   (apb4.hresetn),
+      .ena_i     (s_i2c_en),
+      .clk_cnt_i (s_i2c_pscr_q),
+      .start_i   (s_i2c_cmd_q[7]),
+      .stop_i    (s_i2c_cmd_q[6]),
+      .read_i    (s_i2c_cmd_q[5]),
+      .write_i   (s_i2c_cmd_q[4]),
+      .ack_i     (s_i2c_cmd_q[3]),
+      .dat_i     (s_i2c_txr_q),
+      .cmd_ack_o (s_i2c_done),
+      .ack_o     (s_i2c_irxack),
+      .dat_o     (s_i2c_rxr),
+      .i2c_busy_o(s_i2c_busy),
+      .i2c_al_o  (s_i2c_al),
+      .scl_i,
+      .scl_o,
+      .scl_dir_o,
+      .sda_i,
+      .sda_o,
+      .sda_dir_o
   );
 
   assign apb4.pready  = 1'b1;
