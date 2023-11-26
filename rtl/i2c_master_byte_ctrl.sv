@@ -47,35 +47,31 @@
 // MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
-`include "i2c_master_defines.sv"
+`include "i2c_define.sv"
 
 module i2c_master_byte_ctrl (
-    input  logic        clk_i,
-    input  logic        rst_n_i,
-    input  logic        ena_i,
-    input  logic [15:0] clk_cnt_i,   // 4x SCL
-    input  logic        start_i,
-    input  logic        stop_i,
-    input  logic        read_i,
-    input  logic        write_i,
-    input  logic        ack_i,
-    input  logic [ 7:0] dat_i,
-    output logic        cmd_ack_o,
-    output logic        ack_o,
-    output logic [ 7:0] dat_o,
-    output logic        i2c_busy_o,
-    output logic        i2c_al_o,
-    input  logic        scl_i,
-    output logic        scl_o,
-    output logic        scl_dir_o,
-    input  logic        sda_i,
-    output logic        sda_o,
-    output logic        sda_dir_o
+    input             clk_i,
+    input             rst_n_i,
+    input             ena_i,
+    input      [15:0] clk_cnt_i,
+    input             start_i,
+    input             stop_i,
+    input             read_i,
+    input             write_i,
+    input             ack_i,
+    input      [ 7:0] dat_i,
+    output reg        cmd_ack_o,
+    output reg        ack_o,
+    output     [ 7:0] dat_o,
+    output            i2c_busy_o,
+    output            i2c_al_o,
+    input             scl_i,
+    output            scl_o,
+    output            scl_dir_o,
+    input             sda_i,
+    output            sda_o,
+    output            sda_dir_o
 );
-
-  reg r_cmd_ack, r_ack;
-  assign cmd_ack_o = r_cmd_ack;
-  assign ack_o     = r_ack;
 
   // statemachine
   parameter [4:0] ST_IDLE = 5'b0_0000;
@@ -86,164 +82,169 @@ module i2c_master_byte_ctrl (
   parameter [4:0] ST_STOP = 5'b1_0000;
 
   // signals for bit_controller
-  reg [3:0] r_core_cmd;
-  reg       r_core_txd;
-  wire s_core_ack, s_core_rxd;
+  reg [3:0] core_cmd;
+  reg       core_txd;
+  wire core_ack, core_rxd;
 
-  reg [7:0] r_shift;
-  reg r_shift, r_ld;
+  // signals for shift register
+  reg [7:0] sr;  //8bit shift register
+  reg shift, ld;
 
   // signals for state machine
-  wire s_go, s_cnt_done;
-  reg [2:0] r_dcnt;
+  wire       go;
+  reg  [2:0] dcnt;
+  wire       cnt_done;
 
+  // hookup bit_controller
   i2c_master_bit_ctrl u_i2c_master_bit_ctrl (
       .clk_i    (clk_i),
       .rst_n_i  (rst_n_i),
       .ena_i    (ena_i),
       .clk_cnt_i(clk_cnt_i),
-      .cmd_i    (r_core_cmd),
-      .cmd_ack_o(s_core_ack),
+      .cmd_i    (core_cmd),
+      .cmd_ack_o(core_ack),
       .busy_o   (i2c_busy_o),
       .al_o     (i2c_al_o),
-      .dat_i    (r_core_txd),
-      .dat_o    (s_core_rxd),
-      .scl_i,
-      .scl_o,
-      .scl_dir_o,
-      .sda_i,
-      .sda_o,
-      .sda_dir_o
+      .dat_i    (core_txd),
+      .dat_o    (core_rxd),
+      .scl_i    (scl_i),
+      .scl_o    (scl_o),
+      .scl_dir_o(scl_dir_o),
+      .sda_i    (sda_i),
+      .sda_o    (sda_o),
+      .sda_dir_o(sda_dir_o)
   );
 
-  // generate s_go-signal
-  assign s_go  = (read_i | write_i | stop_i) & ~r_cmd_ack;
-  // assign dat_o output to r_shift-register
-  assign dat_o = r_shift;
+  // generate go-signal
+  assign go    = (read_i | write_i | stop_i) & ~cmd_ack_o;
 
+  // assign dat_o output to shift-register
+  assign dat_o = sr;
+
+  // generate shift register
   always @(posedge clk_i or negedge rst_n_i)
-    if (!rst_n_i) r_shift <= 8'h0;
-    else if (r_ld) r_shift <= dat_i;
-    else if (r_shift) r_shift <= {r_shift[6:0], s_core_rxd};
+    if (!rst_n_i) sr <= #1 8'h0;
+    else if (ld) sr <= #1 dat_i;
+    else if (shift) sr <= #1{sr[6:0], core_rxd};
 
+  // generate counter
   always @(posedge clk_i or negedge rst_n_i)
-    if (!rst_n_i) r_dcnt <= 3'h0;
-    else if (r_ld) r_dcnt <= 3'h7;
-    else if (r_shift) r_dcnt <= r_dcnt - 3'h1;
+    if (!rst_n_i) dcnt <= #1 3'h0;
+    else if (ld) dcnt <= #1 3'h7;
+    else if (shift) dcnt <= #1 dcnt - 3'h1;
 
-  assign s_cnt_done = ~(|r_dcnt);
+  assign cnt_done = ~(|dcnt);
 
-
-  reg [4:0] r_c_state;
+  reg [4:0] c_state;
   always @(posedge clk_i or negedge rst_n_i)
     if (!rst_n_i) begin
-      r_core_cmd <= `I2C_CMD_NOP;
-      r_core_txd <= 1'b0;
-      r_shift    <= 1'b0;
-      r_ld       <= 1'b0;
-      r_cmd_ack  <= 1'b0;
-      r_c_state  <= ST_IDLE;
-      r_ack      <= 1'b0;
+      core_cmd  <= #1 `I2C_CMD_NOP;
+      core_txd  <= #1 1'b0;
+      shift     <= #1 1'b0;
+      ld        <= #1 1'b0;
+      cmd_ack_o <= #1 1'b0;
+      c_state   <= #1 ST_IDLE;
+      ack_o     <= #1 1'b0;
     end else if (i2c_al_o) begin
-      r_core_cmd <= `I2C_CMD_NOP;
-      r_core_txd <= 1'b0;
-      r_shift    <= 1'b0;
-      r_ld       <= 1'b0;
-      r_cmd_ack  <= 1'b0;
-      r_c_state  <= ST_IDLE;
-      r_ack      <= 1'b0;
+      core_cmd  <= #1 `I2C_CMD_NOP;
+      core_txd  <= #1 1'b0;
+      shift     <= #1 1'b0;
+      ld        <= #1 1'b0;
+      cmd_ack_o <= #1 1'b0;
+      c_state   <= #1 ST_IDLE;
+      ack_o     <= #1 1'b0;
     end else begin
       // initially reset all signals
-      r_core_txd <= r_shift[7];
-      r_shift    <= 1'b0;
-      r_ld       <= 1'b0;
-      r_cmd_ack  <= 1'b0;
+      core_txd  <= #1 sr[7];
+      shift     <= #1 1'b0;
+      ld        <= #1 1'b0;
+      cmd_ack_o <= #1 1'b0;
 
-      case (r_c_state)  // synopsys full_case parallel_case
+      case (c_state)  // synopsys full_case parallel_case
         ST_IDLE:
-        if (s_go) begin
+        if (go) begin
           if (start_i) begin
-            r_c_state  <= ST_START;
-            r_core_cmd <= `I2C_CMD_START;
+            c_state  <= #1 ST_START;
+            core_cmd <= #1 `I2C_CMD_START;
           end else if (read_i) begin
-            r_c_state  <= ST_READ;
-            r_core_cmd <= `I2C_CMD_READ;
+            c_state  <= #1 ST_READ;
+            core_cmd <= #1 `I2C_CMD_READ;
           end else if (write_i) begin
-            r_c_state  <= ST_WRITE;
-            r_core_cmd <= `I2C_CMD_WRITE;
+            c_state  <= #1 ST_WRITE;
+            core_cmd <= #1 `I2C_CMD_WRITE;
           end else  // stop_i
           begin
-            r_c_state  <= ST_STOP;
-            r_core_cmd <= `I2C_CMD_STOP;
+            c_state  <= #1 ST_STOP;
+            core_cmd <= #1 `I2C_CMD_STOP;
           end
 
-          r_ld <= 1'b1;
+          ld <= #1 1'b1;
         end
 
         ST_START:
-        if (s_core_ack) begin
+        if (core_ack) begin
           if (read_i) begin
-            r_c_state  <= ST_READ;
-            r_core_cmd <= `I2C_CMD_READ;
+            c_state  <= #1 ST_READ;
+            core_cmd <= #1 `I2C_CMD_READ;
           end else begin
-            r_c_state  <= ST_WRITE;
-            r_core_cmd <= `I2C_CMD_WRITE;
+            c_state  <= #1 ST_WRITE;
+            core_cmd <= #1 `I2C_CMD_WRITE;
           end
 
-          r_ld <= 1'b1;
+          ld <= #1 1'b1;
         end
 
         ST_WRITE:
-        if (s_core_ack)
-          if (s_cnt_done) begin
-            r_c_state  <= ST_ACK;
-            r_core_cmd <= `I2C_CMD_READ;
+        if (core_ack)
+          if (cnt_done) begin
+            c_state  <= #1 ST_ACK;
+            core_cmd <= #1 `I2C_CMD_READ;
           end else begin
-            r_c_state  <= ST_WRITE;  // stay in same state
-            r_core_cmd <= `I2C_CMD_WRITE;  // write_i next bit
-            r_shift    <= 1'b1;
+            c_state  <= #1 ST_WRITE;  // stay in same state
+            core_cmd <= #1 `I2C_CMD_WRITE;  // write_i next bit
+            shift    <= #1 1'b1;
           end
 
         ST_READ:
-        if (s_core_ack) begin
-          if (s_cnt_done) begin
-            r_c_state  <= ST_ACK;
-            r_core_cmd <= `I2C_CMD_WRITE;
+        if (core_ack) begin
+          if (cnt_done) begin
+            c_state  <= #1 ST_ACK;
+            core_cmd <= #1 `I2C_CMD_WRITE;
           end else begin
-            r_c_state  <= ST_READ;  // stay in same state
-            r_core_cmd <= `I2C_CMD_READ;  // read_i next bit
+            c_state  <= #1 ST_READ;  // stay in same state
+            core_cmd <= #1 `I2C_CMD_READ;  // read_i next bit
           end
 
-          r_shift    <= 1'b1;
-          r_core_txd <= ack_i;
+          shift    <= #1 1'b1;
+          core_txd <= #1 ack_i;
         end
 
         ST_ACK:
-        if (s_core_ack) begin
+        if (core_ack) begin
           if (stop_i) begin
-            r_c_state  <= ST_STOP;
-            r_core_cmd <= `I2C_CMD_STOP;
+            c_state  <= #1 ST_STOP;
+            core_cmd <= #1 `I2C_CMD_STOP;
           end else begin
-            r_c_state  <= ST_IDLE;
-            r_core_cmd <= `I2C_CMD_NOP;
+            c_state   <= #1 ST_IDLE;
+            core_cmd  <= #1 `I2C_CMD_NOP;
 
             // generate command acknowledge signal
-            r_cmd_ack  <= 1'b1;
+            cmd_ack_o <= #1 1'b1;
           end
 
-          // assign r_ack output to bit_controller_rxd (contains last received bit)
-          r_ack      <= s_core_rxd;
+          // assign ack_o output to bit_controller_rxd (contains last received bit)
+          ack_o    <= #1 core_rxd;
 
-          r_core_txd <= 1'b1;
-        end else r_core_txd <= ack_i;
+          core_txd <= #1 1'b1;
+        end else core_txd <= #1 ack_i;
 
         ST_STOP:
-        if (s_core_ack) begin
-          r_c_state  <= ST_IDLE;
-          r_core_cmd <= `I2C_CMD_NOP;
+        if (core_ack) begin
+          c_state   <= #1 ST_IDLE;
+          core_cmd  <= #1 `I2C_CMD_NOP;
 
           // generate command acknowledge signal
-          r_cmd_ack  <= 1'b1;
+          cmd_ack_o <= #1 1'b1;
         end
 
       endcase
