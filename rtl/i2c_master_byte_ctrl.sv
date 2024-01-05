@@ -125,7 +125,7 @@ module i2c_master_byte_ctrl (
   always @(posedge clk_i or negedge rst_n_i)
     if (!rst_n_i) sr <= #1 8'h0;
     else if (ld) sr <= #1 dat_i;
-    else if (shift) sr <= #1{sr[6:0], core_rxd};
+    else if (shift) sr <= #1{sr[6:0], core_rxd};  // tx and rx use one shift register
 
   // generate counter
   always @(posedge clk_i or negedge rst_n_i)
@@ -198,7 +198,7 @@ module i2c_master_byte_ctrl (
         if (core_ack)
           if (cnt_done) begin
             c_state  <= #1 ST_ACK;
-            core_cmd <= #1 `I2C_CMD_READ;
+            core_cmd <= #1 `I2C_CMD_READ; // NOTE: read the ack
           end else begin
             c_state  <= #1 ST_WRITE;  // stay in same state
             core_cmd <= #1 `I2C_CMD_WRITE;  // write_i next bit
@@ -209,7 +209,7 @@ module i2c_master_byte_ctrl (
         if (core_ack) begin
           if (cnt_done) begin
             c_state  <= #1 ST_ACK;
-            core_cmd <= #1 `I2C_CMD_WRITE;
+            core_cmd <= #1 `I2C_CMD_WRITE; // NOTE: write the ack
           end else begin
             c_state  <= #1 ST_READ;  // stay in same state
             core_cmd <= #1 `I2C_CMD_READ;  // read_i next bit

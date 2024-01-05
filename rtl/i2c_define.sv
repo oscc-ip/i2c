@@ -16,32 +16,32 @@
  * BITS:   | 31:8 | 7  | 6   | 5:0  |
  * FIELDS: | RES  | EN | IEN | RES  |
  * PERMS:  | NONE | RW | RW  | NONE |
- * -----------------------------------------------------------
+ * ----------------------------------------------------------
  * I2C_PSCR:
  * BITS:   | 31:16 | 15:0 |
  * FIELDS: | RES   | PSCR |
  * PERMS:  | NONE  | RW   |
- * -----------------------------------------------------------
+ * ----------------------------------------------------------
  * I2C_TXR:
- * BITS:   | 31:8  | 7:0  |
- * FIELDS: | RES   | DATA |
- * PERMS:  | NONE  | RW   |
- * -----------------------------------------------------------
+ * BITS:   | 31:8 | 7:0  |
+ * FIELDS: | RES  | DATA |
+ * PERMS:  | NONE | RW   |
+ * ----------------------------------------------------------
  * I2C_RXR:
  * BITS:   | 31:8 | 7:0  |
  * FIELDS: | RES  | DATA |
  * PERMS:  | NONE | R    |
- * -----------------------------------------------------------
+ * ----------------------------------------------------------
  * I2C_CMD:
- * BITS:   | 31:8 | 7   | 6   | 5  | 4   | 3   | 2:1  | 0    |
- * FIELDS: | RES  | STA | STO | RD | WR  | ACK | RES  | IACK |
- * PERMS:  | NONE | W   | W   | W  | W   | W   | NONE | W    |
- * -----------------------------------------------------------
+ * BITS:   | 31:8 | 7   | 6   | 5  | 4  | 3   | 2:1  | 0    |
+ * FIELDS: | RES  | STA | STO | RD | WR | ACK | RES  | IACK |
+ * PERMS:  | NONE | W   | W   | W  | W  | W   | NONE | W    |
+ * ----------------------------------------------------------
  * I2C_SR:
- * BITS:   | 31:8  | 7   | 6   | 5  | 4:2 | 1   | 0  |
- * FIELDS: | RES   | RXK | BSY | AL | RXK | TIP | IF |
- * PERMS:  | NONE  | R   | R   | R  | R   | R   | R  |
- * -----------------------------------------------------------
+ * BITS:   | 31:8 | 7   | 6   | 5  | 4:2  | 1   | 0  |
+ * FIELDS: | RES  | RXK | BSY | AL | RES  | TIP | IF |
+ * PERMS:  | NONE | R   | R   | R  | NONE | R   | R  |
+ * ----------------------------------------------------------
 */
 
 // verilog_format: off
@@ -66,14 +66,13 @@
 `define I2C_CMD_WIDTH  8
 `define I2C_SR_WIDTH   8
 
-`define I2C_PSCR_MIN_VAL  {{(`I2C_PSCR_WIDTH-2){1'b0}}, 2'd2}
+`define I2C_PSCR_MAX_VAL {(`I2C_PSCR_WIDTH){1'b1}}
 
 `define I2C_CMD_NOP   4'b0000
 `define I2C_CMD_START 4'b0001
 `define I2C_CMD_STOP  4'b0010
 `define I2C_CMD_WRITE 4'b0100
 `define I2C_CMD_READ  4'b1000
-
 // verilog_format: on
 
 interface i2c_if ();

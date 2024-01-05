@@ -128,11 +128,12 @@ module i2c_master_bit_ctrl (
   always @(posedge clk_i or negedge rst_n_i)
     if (!rst_n_i) r_slave_wait <= 1'b0;
     else r_slave_wait <= (scl_dir_o & ~r_dscl_dir & ~r_sSCL) | (r_slave_wait & ~r_sSCL);
+  // scl_dir_o & ~r_dscl_dir mean scl_dir rise edge trigger
 
   // master drives SCL high, but another master pulls it low
   // master start counting down its low cycle now (clock synchronization)
   wire s_scl_sync = r_dSCL & ~r_sSCL & scl_dir_o;
-
+  // r_dSCL & ~r_sSCL mean scl fall edge trigger
 
   // generate clk_i enable signal
   always @(posedge clk_i or negedge rst_n_i)
@@ -190,7 +191,7 @@ module i2c_master_bit_ctrl (
 
       r_dSCL <= 1'b1;
       r_dSDA <= 1'b1;
-    end else begin
+    end else begin // every 2 bits of 3 bits calc bit-and
       r_sSCL <= &r_fSCL[2:1] | &r_fSCL[1:0] | (r_fSCL[2] & r_fSCL[0]);
       r_sSDA <= &r_fSDA[2:1] | &r_fSDA[1:0] | (r_fSDA[2] & r_fSDA[0]);
 
