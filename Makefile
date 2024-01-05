@@ -17,6 +17,7 @@ SRC_FILE ?=
 SRC_FILE += ../rtl/i2c_master_bit_ctrl.sv
 SRC_FILE += ../rtl/i2c_master_byte_ctrl.sv
 SRC_FILE += ../rtl/apb4_i2c.sv
+SRC_FILE += ../model/AT24C64D.v
 SRC_FILE += ../tb/i2c_test.sv
 SRC_FILE += ../tb/test_top.sv
 SRC_FILE += ../tb/apb4_i2c_tb.sv
@@ -24,6 +25,7 @@ SRC_FILE += ../tb/apb4_i2c_tb.sv
 SIM_INC ?=
 SIM_INC += +incdir+../rtl/
 SIM_INC += +incdir+../../common/rtl/
+SIM_INC += +incdir+../../common/rtl/tech
 SIM_INC += +incdir+../../common/rtl/verif
 SIM_INC += +incdir+../../common/rtl/interface
 
