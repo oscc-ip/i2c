@@ -13,8 +13,7 @@
 `include "i2c_define.sv"
 
 program automatic test_top (
-    apb4_if.master apb4,
-    i2c_if.tb      i2c
+    apb4_if.master apb4
 );
 
   string wave_name = "default.fsdb";
@@ -34,11 +33,11 @@ program automatic test_top (
     sim_config();
     @(posedge apb4.presetn);
     Helper::print("tb init done");
-    i2c_hdl = new("i2c_test", apb4, i2c);
+    i2c_hdl = new("i2c_test", apb4);
     i2c_hdl.init();
     i2c_hdl.test_reset_reg();
     i2c_hdl.test_wr_rd_reg();
-    i2c_hdl.test_clk_div();
+    i2c_hdl.test_i2c_wr_rd();
     i2c_hdl.test_irq();
 
     Helper::end_banner();
