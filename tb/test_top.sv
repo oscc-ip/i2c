@@ -37,7 +37,7 @@ program automatic test_top (
     i2c_hdl.init();
     i2c_hdl.test_reset_reg();
     i2c_hdl.test_wr_rd_reg();
-    i2c_hdl.test_i2c_24lc04b_wr_rd();
+    i2c_hdl.test_i2c_24lc04a_wr_rd();
     i2c_hdl.test_irq();
 
     Helper::end_banner();

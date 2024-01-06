@@ -45,7 +45,7 @@ class I2CTest extends APB4Master;
   extern task automatic i2c_get_data(output bit [31:0] data);
   extern task automatic i2c_busy(output bit busy);
   extern task automatic test_wr_rd_reg(input bit [31:0] run_times = 1000);
-  extern task automatic test_i2c_24lc04b_wr_rd();
+  extern task automatic test_i2c_24lc04a_wr_rd();
   extern task automatic test_irq(input bit [31:0] run_times = 10);
 endclass
 
@@ -133,9 +133,10 @@ task automatic I2CTest::test_wr_rd_reg(input bit [31:0] run_times = 1000);
   // verilog_format: on
 endtask
 
-task automatic I2CTest::test_i2c_24lc04b_wr_rd();
+task automatic I2CTest::test_i2c_24lc04a_wr_rd();
   $display("=== [test i2c wr] ===");
   this.normal_mode_pscr = 199;  // APB: 100MHz / (5* 100KHz) - 1
+  // this.normal_mode_pscr = 49;  // APB: 100MHz / (5* 400KHz) - 1
   this.slave_addr       = 32'hA0;
   repeat (200) @(posedge this.apb4.pclk);
   this.i2c_setup(this.normal_mode_pscr, 1'b1);
@@ -190,6 +191,7 @@ task automatic I2CTest::test_i2c_24lc04b_wr_rd();
   end while (this.rd_val == 1'b1);
 
 endtask
+
 
 task automatic I2CTest::test_irq(input bit [31:0] run_times = 10);
   super.test_irq();
