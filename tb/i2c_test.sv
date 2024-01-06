@@ -30,6 +30,7 @@ class I2CTest extends APB4Master;
   int                    wr_val;
   int                    rd_val;
   int                    normal_mode_pscr;
+  int                    page_wr_rd_num;
   int                    slave_addr;
 
   virtual apb4_if.master apb4;
@@ -44,7 +45,7 @@ class I2CTest extends APB4Master;
   extern task automatic i2c_get_data(output bit [31:0] data);
   extern task automatic i2c_busy(output bit busy);
   extern task automatic test_wr_rd_reg(input bit [31:0] run_times = 1000);
-  extern task automatic test_i2c_wr_rd();
+  extern task automatic test_i2c_24lc04b_wr_rd();
   extern task automatic test_irq(input bit [31:0] run_times = 10);
 endclass
 
@@ -53,8 +54,9 @@ function I2CTest::new(string name, virtual apb4_if.master apb4);
   this.name             = name;
   this.wr_val           = 0;
   this.rd_val           = 0;
-  this.normal_mode_pscr = 199;  // APB: 100MHz / (5* 100KHz) - 1
-  this.slave_addr       = 32'hA0;
+  this.normal_mode_pscr = 0;  // APB: 100MHz / (5* 100KHz) - 1
+  this.slave_addr       = 0;
+  this.page_wr_rd_num   = 12;
   this.apb4             = apb4;
 endfunction
 
@@ -131,9 +133,11 @@ task automatic I2CTest::test_wr_rd_reg(input bit [31:0] run_times = 1000);
   // verilog_format: on
 endtask
 
-task automatic I2CTest::test_i2c_wr_rd();
+task automatic I2CTest::test_i2c_24lc04b_wr_rd();
   $display("=== [test i2c wr] ===");
-  repeat (200 * 3) @(posedge this.apb4.pclk);
+  this.normal_mode_pscr = 199;  // APB: 100MHz / (5* 100KHz) - 1
+  this.slave_addr       = 32'hA0;
+  repeat (200) @(posedge this.apb4.pclk);
   this.i2c_setup(this.normal_mode_pscr, 1'b1);
 
   //byte/page write
@@ -141,46 +145,50 @@ task automatic I2CTest::test_i2c_wr_rd();
   this.i2c_send_cmd(`I2C_TEST_START_WRITE);
   this.i2c_get_ack();
 
-
   this.i2c_send_data(32'b0);  // write sub addr
   this.i2c_send_cmd(`I2C_TEST_WRITE);
   this.i2c_get_ack();
 
-  for (int i = 0; i < 2; i++) begin
+  for (int i = 0; i < this.page_wr_rd_num; i++) begin
     this.i2c_send_data(i);
     this.i2c_send_cmd(`I2C_TEST_WRITE);
+    repeat (5500) @(posedge this.apb4.pclk);
     this.i2c_get_ack();
-    // repeat (10000) @(posedge this.apb4.pclk);
   end
   this.i2c_send_cmd(`I2C_TEST_STOP);
   do begin
     this.i2c_busy(this.rd_val);
   end while (this.rd_val == 1'b1);
 
-
   //byte/page read
-  // this.i2c_send_data(this.slave_addr);
-  // this.i2c_send_cmd(`I2C_TEST_START_WRITE);
-  // this.i2c_get_ack();
+  this.i2c_send_data(this.slave_addr);
+  this.i2c_send_cmd(`I2C_TEST_START_WRITE);
+  this.i2c_get_ack();
 
-  // this.i2c_send_data(32'b0);  // write sub addr
-  // this.i2c_send_cmd(`I2C_TEST_WRITE);
-  // this.i2c_get_ack();
-  // this.i2c_send_cmd(`I2C_TEST_STOP);
-  // do begin
-  //   this.i2c_busy(this.rd_val);
-  // end while (this.rd_val == 1'b1);
+  this.i2c_send_data(32'b0);  // write sub addr
+  this.i2c_send_cmd(`I2C_TEST_WRITE);
+  this.i2c_get_ack();
+  this.i2c_send_cmd(`I2C_TEST_STOP);
+  do begin
+    this.i2c_busy(this.rd_val);
+  end while (this.rd_val == 1'b1);
 
-  // this.i2c_send_data(this.slave_addr + 1'b1);
-  // this.i2c_send_cmd(`I2C_TEST_START_WRITE);
-  // this.i2c_get_ack();
+  this.i2c_send_data(this.slave_addr + 1'b1);
+  this.i2c_send_cmd(`I2C_TEST_START_WRITE);
+  this.i2c_get_ack();
 
-  // for (int i = 0; i < 1; i++) begin
-  //   this.i2c_send_cmd(`I2C_TEST_STOP_READ);
-  //   this.i2c_get_ack();
-  //   this.i2c_get_data(this.rd_val);
-  //   $display("%t cnt: %d rd_val: %h", $time, i, this.rd_val);
-  // end
+  for (int i = 0; i < this.page_wr_rd_num; i++) begin
+    this.i2c_send_cmd(`I2C_TEST_READ);
+
+    this.i2c_get_ack();
+    this.i2c_get_data(this.rd_val);
+    $display("%t cnt: %d rd_val: %h", $time, i, this.rd_val);
+  end
+  this.i2c_send_cmd(`I2C_TEST_STOP);
+  do begin
+    this.i2c_busy(this.rd_val);
+  end while (this.rd_val == 1'b1);
+
 endtask
 
 task automatic I2CTest::test_irq(input bit [31:0] run_times = 10);
