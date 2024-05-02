@@ -30,17 +30,17 @@
  * I2C_RXR:
  * BITS:   | 31:8 | 7:0  |
  * FIELDS: | RES  | DATA |
- * PERMS:  | NONE | R    |
+ * PERMS:  | NONE | RO   |
  * ----------------------------------------------------------
  * I2C_CMD:
  * BITS:   | 31:8 | 7   | 6   | 5  | 4  | 3   | 2:1  | 0    |
  * FIELDS: | RES  | STA | STO | RD | WR | ACK | RES  | IACK |
- * PERMS:  | NONE | W   | W   | W  | W  | W   | NONE | W    |
+ * PERMS:  | NONE | WO  | WO  | WO | WO | WO  | NONE | WO   |
  * ----------------------------------------------------------
  * I2C_SR:
  * BITS:   | 31:8 | 7   | 6   | 5  | 4:2  | 1   | 0  |
  * FIELDS: | RES  | RXK | BSY | AL | RES  | TIP | IF |
- * PERMS:  | NONE | R   | R   | R  | NONE | R   | R  |
+ * PERMS:  | NONE | RO  | RO  | RO | NONE | RO  | RO |
  * ----------------------------------------------------------
 */
 
