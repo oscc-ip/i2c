@@ -1,20 +1,5 @@
 # I2C
 
-<p>
-    <a href=".">
-      <img src="https://img.shields.io/badge/RTL%20dev-done-green?style=flat-square">
-    </a>
-    <a href=".">
-      <img src="https://img.shields.io/badge/VCS%20sim-done-green?style=flat-square">
-    </a>
-    <a href=".">
-      <img src="https://img.shields.io/badge/FPGA%20verif-no%20start-wheat?style=flat-square">
-    </a>
-    <a href=".">
-      <img src="https://img.shields.io/badge/Tapeout%20test-no%20start-wheat?style=flat-square">
-    </a>
-</p>
-
 ## Features
 * Compatible with Philips I2C standard
 * Programmable prescaler
@@ -25,6 +10,8 @@
 * Maskable send or receive interrupt
 * Static synchronous design
 * Full synthesizable
+
+FULL vision of datatsheet can be found in [datasheet.md](./doc/datasheet.md).
 
 ## Build and Test
 ```bash
