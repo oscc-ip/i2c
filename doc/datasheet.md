@@ -49,7 +49,12 @@ The `i2c(inter-integrated circuit)` IP is a fully parameterised soft IP to imple
 reset value: `0x0000_0000`
 
 * EN: function enable
+    * `EN = 1'b0`: i2c function disable
+    * `EN = 1'b1`: otherwise
+
 * IEN: interrupt enable
+    * `IEN = 1'b0`: interrupt disable
+    * `IEN = 1'b1`: otherwise
 
 #### Prescaler Reigster
 | bit | access  | description |
@@ -69,7 +74,11 @@ reset value: `0x0000_0002`
 
 reset value: `0x0000_0000`
 
-* DATA: transmit value
+* DATA: transmit data
+    * `[7:1]`: upper 7 bits of DATA
+    * `[0:0]`: LSB of DATA
+        * address phase: `0` -> write to slave `1` -> read from slave
+        * data phase: LSB of DATA
 
 #### Receive Reigster
 | bit | access  | description |
@@ -93,14 +102,31 @@ reset value: `0x0000_0000`
 | `[2:1]` | none | reserved |
 | `[0:0]` | WO | IACK |
 
-reset value: `0x0000_xxxx`
+reset value: `0x0000_0000`
 
-* STA:
-* STO:
-* RD:
-* WR:
-* ACK:
-* IACK:
+* STA: start command
+    * `STA = 1'b0`: dont send start command
+    * `STA = 1'b1`: otherwise
+
+* STO: stop command
+    * `STO = 1'b0`: dont send stop command
+    * `STO = 1'b1`: otherwise
+
+* RD: read from slave command
+    * `RD = 1'b0`: dont send read command
+    * `RD = 1'b1`: otherwise
+
+* WR: write to slave command
+    * `WR = 1'b0`: dont send write command
+    * `WR = 1'b1`: otherwise
+
+* ACK: read acknowledge
+    * `ACK = 1'b0`: send nack command
+    * `ACK = 1'b1`: send ack command
+
+* IACK: interrupt acknowledge
+    * `IACK = 1'b0`: dont clear interrupt ack flag
+    * `IACK = 1'b1`: otherwise
 
 #### State Reigster
 | bit | access  | description |
@@ -113,13 +139,27 @@ reset value: `0x0000_xxxx`
 | `[1:1]` | RO | TIP |
 | `[0:0]` | RO | IF |
 
-reset value: `0xxxxx_xxxx`
+reset value: `0x0000_0000`
 
-* RXK:
-* BSY:
-* AL:
-* TIP:
-* IF:
+* RXK: receive acknowledge from slave
+    * `IACK = 1'b0`: dont clear interrupt ack flag
+    * `IACK = 1'b1`: otherwise
+
+* BSY: i2c bus busy
+    * `IACK = 1'b0`: detect stop command
+    * `IACK = 1'b1`: detect start command
+
+* AL: arbitration lost
+    * `AL = 1'b0`: dont lost arbit
+    * `AL = 1'b1`: otherwise
+
+* TIP: transmit in progress
+    * `TIP = 1'b0`: transmit done
+    * `TIP = 1'b1`: otherwise
+
+* IF: interrupt flag
+    * `IF = 1'b0`: interrupt is triggered
+    * `IF = 1'b1`: otherwise
 
 ### Program Guide
 These registers can be accessed by 4-byte aligned read and write. C-like pseudocode read operation:
