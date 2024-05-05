@@ -142,12 +142,12 @@ reset value: `0x0000_0000`
 reset value: `0x0000_0000`
 
 * RXK: receive acknowledge from slave
-    * `IACK = 1'b0`: dont clear interrupt ack flag
-    * `IACK = 1'b1`: otherwise
+    * `RXK = 1'b0`: receive ack
+    * `RXK = 1'b1`: otherwise
 
 * BSY: i2c bus busy
-    * `IACK = 1'b0`: detect stop command
-    * `IACK = 1'b1`: detect start command
+    * `BSY = 1'b0`: detect stop command
+    * `BSY = 1'b1`: detect start command
 
 * AL: arbitration lost
     * `AL = 1'b0`: dont lost arbit
@@ -162,23 +162,78 @@ reset value: `0x0000_0000`
     * `IF = 1'b1`: otherwise
 
 ### Program Guide
-These registers can be accessed by 4-byte aligned read and write. C-like pseudocode read operation:
+These registers can be accessed by 4-byte aligned read and write. C-like pseudocode init operation:
 ```c
-uint32_t val;
-val = i2c.SYS // read the sys register
-val = i2c.IDL // read the idl register
-val = i2c.IDH // read the idh register
+i2c.PSCR = PSCR_16_bit // set the prescaler value
+i2c.CTRL.EN = 1        // enable i2c core
 
 ```
+
 write operation:
 ```c
-uint32_t val = value_to_be_written;
-i2c.SYS = val // write the sys register
-i2c.IDL = val // write the idl register
-i2c.IDH = val // write the idh register
+i2c.TXR = (SLAVE_ADDR_7_bit << 1) | 0 // send slave device addr
+i2c.CMD.[STA, WR] = 1                 // set start and write mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
 
+
+i2c.TXR = SLAVE_SUB_ADDR_8_bit        // send slave sub addr
+i2c.CMD.WR = 1                        // set start and write mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
+
+...
+i2c.TXR = DATA_8_bit                  // send data
+i2c.CMD.WR = 1                        // set start and write mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
+...
+
+i2c.CMD.STOP = 1                      // send stop command
+while (i2c.SR.BSY == 1)               // wait bus idle
 ```
 
+read operation:
+```c
+i2c.TXR = (SLAVE_ADDR_7_bit << 1) | 0 // send slave device addr
+i2c.CMD.[STA, WR] = 1                 // set start and write mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
+
+
+i2c.TXR = SLAVE_SUB_ADDR_8_bit        // send slave sub addr
+i2c.CMD.WR = 1                        // set start and write mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
+
+i2c.CMD.STOP = 1                      // send stop command
+while (i2c.SR.BSY == 1)               // wait bus idle
+
+i2c.TXR = (SLAVE_ADDR_7_bit << 1) | 1 // send slave device addr
+i2c.CMD.[STA, WR] = 1                 // set start and write mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
+
+...
+i2c.CMD.RD = 1                        // set read mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
+uint32_t recv_data = i2c.RXR          // read the data
+...
+i2c.CMD.[STOP, RD] = 1                // set stop and read mode
+while (i2c.SR.TIP == 0);              // need TIP go to 1
+while (i2c.SR.TIP != 0);              // need TIP go to 0
+if i2c.SR.RXK == 1: print('no receive ack')
+uint32_t recv_data = i2c.RXR          // read the last data
+
+```
 ### Resoureces
 ### References
 ### Revision History
