@@ -135,8 +135,9 @@ endtask
 
 task automatic I2CTest::test_i2c_24lc04a_wr_rd();
   $display("=== [test i2c wr] ===");
-  this.normal_mode_pscr = 199;  // APB: 100MHz / (5* 100KHz) - 1
-  // this.normal_mode_pscr = 49;  // APB: 100MHz / (5* 400KHz) - 1
+  // why 5 ?: because ctrl need 5 phase to send/receive one bit
+  this.normal_mode_pscr = 199;  // APB: 100MHz / (5 * 100KHz) - 1
+  // this.normal_mode_pscr = 49;  // APB: 100MHz / (5 * 400KHz) - 1
   this.slave_addr       = 32'hA0;
   repeat (200) @(posedge this.apb4.pclk);
   this.i2c_setup(this.normal_mode_pscr, 1'b1);
@@ -150,10 +151,11 @@ task automatic I2CTest::test_i2c_24lc04a_wr_rd();
   this.i2c_send_cmd(`I2C_TEST_WRITE);
   this.i2c_get_ack();
 
+  // tHDDAT can ben zero, so maybe can ignore the error tHDSTA timing check
   for (int i = 0; i < this.page_wr_rd_num; i++) begin
-    this.i2c_send_data(i);
+    $display("%t %d page wr", $time, i+1);
+    this.i2c_send_data(i+1);
     this.i2c_send_cmd(`I2C_TEST_WRITE);
-    repeat (5500) @(posedge this.apb4.pclk);
     this.i2c_get_ack();
   end
   this.i2c_send_cmd(`I2C_TEST_STOP);

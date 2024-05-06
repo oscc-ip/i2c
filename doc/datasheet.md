@@ -62,7 +62,7 @@ reset value: `0x0000_0000`
 | `[31:16]` | none | reserved |
 | `[15:0]` | RW | PSCR |
 
-reset value: `0xFFFF_FFFF`
+reset value: `0x0000_FFFF`
 
 * PSCR: 16-bit prescaler value
 
