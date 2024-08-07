@@ -62,7 +62,7 @@ typedef struct {
         uint8_t month;
         uint8_t year;
     } date;
-        
+
 } PCF8563B_info_t;
 
 void i2c_config() {
@@ -209,7 +209,7 @@ int main(){
         printf("recv: %d expt: %d\n", rd_data[i], i);
         if (rd_data[i] != i) putstr("test fail\n");
     }
-    
+
     i2c_wr_nbyte(AT24C64_SLV_ADDR, (uint16_t)0, I2C_DEV_ADDR_16BIT, TEST_NUM, ref_data);
 
     // i2c_wr_nbyte(AT24C64_SLV_ADDR, (uint16_t)36, I2C_DEV_ADDR_16BIT, 10, ref_data);
