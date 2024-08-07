@@ -142,6 +142,8 @@ task automatic I2CTest::test_i2c_24lc04a_wr_rd();
   repeat (200) @(posedge this.apb4.pclk);
   this.i2c_setup(this.normal_mode_pscr, 1'b1);
 
+
+
   //byte/page write
   this.i2c_send_data(this.slave_addr);
   this.i2c_send_cmd(`I2C_TEST_START_WRITE);
@@ -162,6 +164,8 @@ task automatic I2CTest::test_i2c_24lc04a_wr_rd();
   do begin
     this.i2c_busy(this.rd_val);
   end while (this.rd_val == 1'b1);
+
+
 
   //byte/page read
   this.i2c_send_data(this.slave_addr);
@@ -192,6 +196,27 @@ task automatic I2CTest::test_i2c_24lc04a_wr_rd();
     this.i2c_busy(this.rd_val);
   end while (this.rd_val == 1'b1);
 
+
+  //byte/page write
+  this.i2c_send_data(this.slave_addr);
+  this.i2c_send_cmd(`I2C_TEST_START_WRITE);
+  this.i2c_get_ack();
+
+  this.i2c_send_data(32'b0);  // write sub addr
+  this.i2c_send_cmd(`I2C_TEST_WRITE);
+  this.i2c_get_ack();
+
+  // tHDDAT can ben zero, so maybe can ignore the error tHDSTA timing check
+  for (int i = 0; i < this.page_wr_rd_num; i++) begin
+    $display("%t %d page wr", $time, i+1);
+    this.i2c_send_data(i+1);
+    this.i2c_send_cmd(`I2C_TEST_WRITE);
+    this.i2c_get_ack();
+  end
+  this.i2c_send_cmd(`I2C_TEST_STOP);
+  do begin
+    this.i2c_busy(this.rd_val);
+  end while (this.rd_val == 1'b1);
 endtask
 
 
