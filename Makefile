@@ -21,6 +21,7 @@ SRC_FILE += ../../common/rtl/interface/apb4_if.sv
 SRC_FILE += ../../common/rtl/verif/helper.sv
 SRC_FILE += ../../common/rtl/verif/test_base.sv
 SRC_FILE += ../../common/rtl/verif/apb4_master.sv
+SRC_FILE += ../rtl/i2c_if.sv
 SRC_FILE += ../rtl/i2c_master_bit_ctrl.sv
 SRC_FILE += ../rtl/i2c_master_byte_ctrl.sv
 SRC_FILE += ../rtl/apb4_i2c.sv
