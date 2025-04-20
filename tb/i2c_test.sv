@@ -8,11 +8,7 @@
 // MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
-`ifndef INC_I2C_TEST_SV
-`define INC_I2C_TEST_SV
-
-`include "apb4_master.sv"
-`include "i2c_define.sv"
+`include "i2c_define.svh"
 
 // verilog_format: off
 `define I2C_TEST_START       32'h80
@@ -223,4 +219,3 @@ endtask
 task automatic I2CTest::test_irq(input bit [31:0] run_times = 10);
   super.test_irq();
 endtask
-`endif

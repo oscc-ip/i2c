@@ -84,7 +84,7 @@
 // MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
-`include "i2c_define.sv"
+`include "i2c_define.svh"
 
 module i2c_master_bit_ctrl (
     input             clk_i,      // system clock

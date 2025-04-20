@@ -20,8 +20,7 @@
 // MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
-`include "register.sv"
-`include "i2c_define.sv"
+`include "i2c_define.svh"
 
 module apb4_i2c (
     apb4_if.slave apb4,

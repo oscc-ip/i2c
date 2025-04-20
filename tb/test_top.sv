@@ -8,9 +8,7 @@
 // MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 // See the Mulan PSL v2 for more details.
 
-`include "apb4_if.sv"
-`include "helper.sv"
-`include "i2c_define.sv"
+`include "i2c_define.svh"
 
 program automatic test_top (
     apb4_if.master apb4
